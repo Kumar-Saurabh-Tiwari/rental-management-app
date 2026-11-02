@@ -65,9 +65,13 @@ Never put a Supabase service-role key in the browser app.
 
 1. Open the Supabase SQL Editor.
 2. Run [`supabase/schema.sql`](./supabase/schema.sql).
-3. In Supabase Authentication, create the landlord user with the email/password used on the login screen.
-4. Confirm the `meter-images` storage bucket is present.
-5. Start the app and sign in.
+3. In Supabase Authentication → Users, create the landlord account. Use the email/password you want for the landlord; credentials are intentionally not stored in this repository.
+4. In Authentication → Providers, enable Google if OAuth login is required.
+5. In Authentication → URL Configuration, add `http://localhost:5173` and your deployed app URL to the allowed redirect URLs.
+6. Confirm the `meter-images` storage bucket is present.
+7. Start the app and sign in.
+
+The login screen supports email sign-in, landlord registration with email confirmation, and Google OAuth. Database API reads/writes require an authenticated Supabase session and are protected by the RLS policies in the schema.
 
 If the browser shows `PGRST205` or says `Could not find the table 'public.rooms'`, the SQL script has not been applied to this Supabase project yet. Run the complete [`supabase/schema.sql`](./supabase/schema.sql) in **Supabase Dashboard → SQL Editor → New query → Run**, then reload the app. The app will continue in demo mode until the tables are available.
 

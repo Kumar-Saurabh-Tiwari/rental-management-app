@@ -6,7 +6,7 @@ import {
   Plus, Search, Settings, ShieldCheck, SlidersHorizontal, UserRound, Users, WalletCards, X, Zap
 } from 'lucide-react'
 import './styles.css'
-import { createTenantRecord, isSupabaseConfigured, loadRentalData, recordPayment, saveElectricityBill, signInLandlord, signOutLandlord, supabase } from './supabaseClient'
+import { createTenantRecord, isSupabaseConfigured, loadRentalData, recordPayment, registerLandlord, saveElectricityBill, signInLandlord, signInWithGoogle, signOutLandlord, supabase } from './supabaseClient'
 
 const tenantsSeed = [
   { id: 1, name: 'Aarav Mehta', initials: 'AM', room: 'A-204', type: 'Deluxe', rent: 18500, bill: 1280, status: 'Paid', model: 'Postpaid', phone: '+91 98765 43210', moveIn: '12 Jan 2024', color: 'coral' },
@@ -198,21 +198,37 @@ function LandlordProfile({ landlord, onSave, onClose, onSignOut }) {
 function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mode, setMode] = useState('login')
+  const isRegister = mode === 'register'
   const submit = async (event) => {
     event.preventDefault()
     setLoading(true)
     setError('')
     const form = new FormData(event.currentTarget)
     try {
-      const result = await signInLandlord(form.get('email'), form.get('password'))
-      onLogin(result.user)
+      const result = isRegister
+        ? await registerLandlord(form.get('email'), form.get('password'))
+        : await signInLandlord(form.get('email'), form.get('password'))
+      if (result.session?.user) onLogin(result.session.user)
+      else if (isRegister) setError('Check your email to confirm the landlord account, then sign in.')
+      else setError('Authentication completed without an active session. Please try again.')
     } catch (loginError) {
       setError(loginError.message || 'Unable to sign in')
     } finally {
       setLoading(false)
     }
   }
-  return <div className="login-shell"><div className="login-glow glow-one" /><div className="login-glow glow-two" /><section className="login-card"><div className="brand login-brand"><div className="brand-mark"><Home size={19} /></div><span>nestly</span></div><div className="login-kicker">LANDLORD PORTAL</div><h1>Welcome back, RB Tiwari</h1><p className="login-copy">Sign in to manage your tenants, rent collection and utilities.</p><form onSubmit={submit} className="login-form"><label>Email address<input name="email" type="email" placeholder="you@example.com" required autoComplete="email" /></label><label>Password<input name="password" type="password" placeholder="Enter your password" required autoComplete="current-password" /></label>{error && <div className="login-error">{error}</div>}<button className="primary-btn login-submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in to dashboard'} <ArrowUpRight size={16} /></button></form><div className="login-note"><ShieldCheck size={15} /> Admin access only · Tenant portal coming soon</div></section><div className="login-preview"><div className="preview-top"><span>RB Tiwari's Properties</span><span className="preview-dot">● Live</span></div><div className="preview-number">₹1,24,500 <small>collected this month</small></div><div className="preview-bars"><i /><i /><i /><i /><i /><i /><i /></div><div className="preview-caption">A calm, clear view of your properties.</div></div></div>
+  const googleLogin = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      await signInWithGoogle()
+    } catch (loginError) {
+      setError(loginError.message || 'Google sign-in is unavailable')
+      setLoading(false)
+    }
+  }
+  return <div className="login-shell"><div className="login-glow glow-one" /><div className="login-glow glow-two" /><section className="login-card"><div className="brand login-brand"><div className="brand-mark"><Home size={19} /></div><span>nestly</span></div><div className="login-kicker">LANDLORD PORTAL</div><h1>{isRegister ? 'Create your landlord account' : 'Welcome back, RB Tiwari'}</h1><p className="login-copy">{isRegister ? 'Register the landlord account that will manage this property workspace.' : 'Sign in to manage your tenants, rent collection and utilities.'}</p><form onSubmit={submit} className="login-form"><label>Email address<input name="email" type="email" placeholder="landlord@example.com" required autoComplete="email" /></label><label>Password<input name="password" type="password" placeholder="Use at least 6 characters" minLength="6" required autoComplete={isRegister ? 'new-password' : 'current-password'} /></label>{error && <div className="login-error">{error}</div>}<button className="primary-btn login-submit" disabled={loading}>{loading ? (isRegister ? 'Creating account…' : 'Signing in…') : (isRegister ? 'Create landlord account' : 'Sign in to dashboard')} <ArrowUpRight size={16} /></button></form><div className="auth-divider"><span>or continue with</span></div><button className="oauth-btn" onClick={googleLogin} disabled={loading}><span className="google-mark">G</span> Continue with Google</button><button className="auth-switch" onClick={() => { setMode(isRegister ? 'login' : 'register'); setError('') }}>{isRegister ? 'Already have an account? Sign in' : 'New landlord? Create an account'}</button><div className="login-note"><ShieldCheck size={15} /> Admin access only · Tenant portal coming soon</div></section><div className="login-preview"><div className="preview-top"><span>RB Tiwari's Properties</span><span className="preview-dot">● Live</span></div><div className="preview-number">₹1,24,500 <small>collected this month</small></div><div className="preview-bars"><i /><i /><i /><i /><i /><i /><i /></div><div className="preview-caption">A calm, clear view of your properties.</div></div></div>
 }
 
 function StatCard({ label, value, foot, icon: Icon, tone, trend }) { return <div className="stat-card"><div className={`stat-icon ${tone}`}><Icon size={19} /></div><p>{label}</p><h2>{value}</h2><small className={trend ? 'positive' : ''}>{trend && <ArrowUpRight size={13} />}{foot}</small></div> }

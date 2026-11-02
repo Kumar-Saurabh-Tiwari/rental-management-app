@@ -63,6 +63,26 @@ create table if not exists payments (
 create index if not exists electricity_bills_tenant_month_idx on electricity_bills(tenant_id, month_year);
 create index if not exists payments_tenant_date_idx on payments(tenant_id, payment_date desc);
 
+alter table rooms enable row level security;
+alter table tenants enable row level security;
+alter table tenant_documents enable row level security;
+alter table vehicles enable row level security;
+alter table electricity_bills enable row level security;
+alter table payments enable row level security;
+
+drop policy if exists "authenticated workspace access rooms" on rooms;
+create policy "authenticated workspace access rooms" on rooms for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated workspace access tenants" on tenants;
+create policy "authenticated workspace access tenants" on tenants for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated workspace access documents" on tenant_documents;
+create policy "authenticated workspace access documents" on tenant_documents for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated workspace access vehicles" on vehicles;
+create policy "authenticated workspace access vehicles" on vehicles for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated workspace access bills" on electricity_bills;
+create policy "authenticated workspace access bills" on electricity_bills for all to authenticated using (true) with check (true);
+drop policy if exists "authenticated workspace access payments" on payments;
+create policy "authenticated workspace access payments" on payments for all to authenticated using (true) with check (true);
+
 -- Meter photos are uploaded by the web app to this public bucket.
 insert into storage.buckets (id, name, public)
 values ('meter-images', 'meter-images', true)
@@ -77,5 +97,5 @@ drop policy if exists "authenticated users can upload meter images" on storage.o
 drop policy if exists "app users can upload meter images" on storage.objects;
 create policy "app users can upload meter images"
 on storage.objects for insert
-to anon, authenticated
+to authenticated
 with check (bucket_id = 'meter-images');
