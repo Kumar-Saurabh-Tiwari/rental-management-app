@@ -7,20 +7,14 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null
 
 export async function signInLandlord(email, password) {
-  if (!supabase) {
-    const user = { email }
-    return { user, session: { user } }
-  }
+  if (!supabase) throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
   return data
 }
 
 export async function registerLandlord(email, password) {
-  if (!supabase) {
-    const user = { email }
-    return { user, session: { user } }
-  }
+  if (!supabase) throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -31,7 +25,7 @@ export async function registerLandlord(email, password) {
 }
 
 export async function signInWithGoogle() {
-  if (!supabase) return { user: { email: 'google-demo@nestly.app' } }
+  if (!supabase) throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin },

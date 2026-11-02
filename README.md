@@ -39,7 +39,7 @@ The app is responsive at mobile widths with bottom navigation, camera-ready mete
   - Persist bill and photo to Supabase
 - Payment recording with transaction reference
 - Dark mode and premium motion design
-- Demo data fallback when Supabase credentials are not configured
+- Production data is loaded only from Supabase; empty tables show empty states
 
 ## Getting started
 
@@ -73,7 +73,7 @@ Never put a Supabase service-role key in the browser app.
 
 The login screen supports email sign-in, landlord registration with email confirmation, and Google OAuth. Database API reads/writes require an authenticated Supabase session and are protected by the RLS policies in the schema.
 
-If the browser shows `PGRST205` or says `Could not find the table 'public.rooms'`, the SQL script has not been applied to this Supabase project yet. Run the complete [`supabase/schema.sql`](./supabase/schema.sql) in **Supabase Dashboard → SQL Editor → New query → Run**, then reload the app. The app will continue in demo mode until the tables are available.
+If the browser shows `PGRST205` or says `Could not find the table 'public.rooms'`, the SQL script has not been applied to this Supabase project yet. Run the complete [`supabase/schema.sql`](./supabase/schema.sql) in **Supabase Dashboard → SQL Editor → New query → Run**, then reload the app. No mock records are loaded.
 
 ## Validation
 
