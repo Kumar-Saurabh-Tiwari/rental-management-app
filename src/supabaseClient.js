@@ -27,18 +27,25 @@ export async function loadRentalData() {
     supabase.from('rooms').select('*').order('room_number'),
     supabase.from('tenants').select('*, rooms(room_number, type, rent_amount)').order('created_at', { ascending: false }),
   ])
-  if (roomsError) throw roomsError
-  if (tenantsError) throw tenantsError
+  if (roomsError) throw normalizeDatabaseError(roomsError)
+  if (tenantsError) throw normalizeDatabaseError(tenantsError)
 
   const { data: bills, error: billsError } = await supabase
     .from('electricity_bills')
     .select('tenant_id, total_amount, status')
     .order('month_year', { ascending: false })
-  if (billsError) throw billsError
+  if (billsError) throw normalizeDatabaseError(billsError)
 
   const latestBills = new Map()
   for (const bill of bills || []) {
     if (!latestBills.has(bill.tenant_id)) latestBills.set(bill.tenant_id, bill)
+  }
+
+  function normalizeDatabaseError(error) {
+    if (error?.code === 'PGRST205') {
+      return new Error('Supabase tables are missing. Run supabase/schema.sql in the Supabase SQL Editor, then reload Nestly.')
+    }
+    return error
   }
   return {
     rooms: rooms || [],
